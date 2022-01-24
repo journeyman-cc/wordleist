@@ -81,13 +81,14 @@
   :license {:name "GPL-2.0-or-later WITH Classpath-exception-2.0"
             :url  "https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html"}
 
-  :plugins [[lein-figwheel "0.5.19"]
-            [lein-cljsbuild "1.1.7" :exclusions [[org.clojure/clojure]]]
+  :plugins [[lein-cljsbuild "1.1.7" :exclusions [[org.clojure/clojure]]]
+            [lein-codox "0.10.8"]
+            [lein-figwheel "0.5.19"]
             [lein-npm "0.6.2"]]
   
-  :profiles {:dev {:dependencies  [[binaryage/devtools "0.9.10"]
-                                   [figwheel-sidecar "0.5.19"]
-                                   [thheller/shadow-cljs "2.11.7"]]
+  :profiles {:dev {:dependencies  [[binaryage/devtools "1.0.4"]
+                                   [figwheel-sidecar "0.5.20"]
+                                   [thheller/shadow-cljs "2.16.12"]]
                    ;; need to add dev source path here to get user.clj loaded
                    :source-paths  ["src" "dev"]
                    ;; need to add the compliled assets to the :clean-targets

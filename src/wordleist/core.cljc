@@ -5,7 +5,9 @@
             ;; [clojure.pprint :refer [pprint]]
             ))
 
-(def word-length 5)
+(def word-length
+  "The length of the words we operate on." 
+  5)
 
 #?(:cljs (def sgb-words (inline "sgb-words.txt")))
 
@@ -22,11 +24,14 @@
    (split-lines #?(:clj (slurp (resource "sgb-words.txt"))
                    :cljs sgb-words))))
 
-(defn check-length [target name]
+(defn check-length 
+  "Check that this `target` is exactly `word-length` long, and throuw an exception labelled
+   with `name` if it is not."
+  [target name]
   (when-not (= (count target) word-length)
     (throw (#?(:clj Exception.
-              :cljs js/Error.) (str name " must have exactly " word-length " letters; '"
-                            target "' has " (count target)))))
+               :cljs js/Error.) (str name " must have exactly " word-length " letters; '"
+                                     target "' has " (count target)))))
   true)
 
 (defn member?
@@ -54,7 +59,8 @@
   []
   (partial wordle (rand-nth words)))
 
-(defn in-consistent
+(defn- in-consistent
+  "Internal guts of `consistent?`, q.v."
   [pattern target]
   (map #(let [present (some (fn [x] (= (nth %1 1) x)) target)]
           (case (first %1)
@@ -111,12 +117,17 @@
     candidates)))
 
 (defn pattern?
-  "Validate wordle patterns. Return `true` if `pattern` is a valid pattern, else `false`."
+  "Validate wordle patterns. Return `true` if `pattern` is a valid pattern, else `false`.
+
+   A pattern is a sequence of `word-length` sequences, such that:
+   1. every element is a sequence, or nil;
+   2. the first element of every sequence which is not nil is a keyword;
+   3. the second element of every sequence which is not nil is a character."
   [pattern]
   (and (seq? pattern)
        (= (count pattern) word-length)
        (every? true?
-               (map #(cond 
+               (map #(cond
                        (nil? %) true
                        (and (seq %) (keyword? (first %)) (char? (nth % 1))) true
                        :else false)
@@ -147,7 +158,10 @@
 
 (defn all-with-mark
   "Return a sequence of indefinite length, containung all characters with 
-   this `mark` in these `patterns`."
+   this `mark` in these `patterns`.
+
+   As with `generate `which depends on it, this is experimental code which is currently
+   not used."
   [patterns mark]
   (remove nil?
           (flatten
@@ -161,13 +175,19 @@
             patterns))))
 
 (defn remove-all
-  "Return a sequence like `seq`but with all members of `to-remove` removed."
+  "Return a sequence like `seq`but with all members of `to-remove` removed.
+
+   As with `generate `which depends on it, this is experimental code which is currently
+   not used."
   [to-remove seq]
   (remove #(member? % to-remove) seq))
 
 (defn remove-all-with-mark
   "Return a set of characters like `freq`, but with all marked with this `mark` in
-   any of these patterns removed."
+   any of these patterns removed.
+
+   As with `generate `which depends on it, this is experimental code which is currently
+   not used."
   [patterns mark]
   (let [np (all-with-mark patterns mark)]
     (remove-all np freq)))
@@ -175,22 +195,29 @@
 (defn- alternate-possible
   "Where `possibles` is a list of characters which have been marked `possible` in these
    `patterns`, return the first which has never been marked as `possible` in this
-   `position`."
+   `position`.
+
+   As with `generate`, which depends on it, this is experimental code which is currently
+   not used."
   [patterns possibles others position]
-  (let [already-tried (remove nil? 
+  (let [already-tried (remove nil?
                               (map #(let [e (nth % position)]
                                       (when (= :not-present (first e))
-                                               (nth e 1)))
+                                        (nth e 1)))
                                    patterns))
         possibles'    (remove-all already-tried possibles)]
-  (if (empty? possibles')
-    (first others)
-    (first possibles'))))
+    (if (empty? possibles')
+      (first others)
+      (first possibles'))))
 
 (defn generate
   "Generate the next word to test, given these `patterns` from previous tests, 
    and these `candidates` for the word to be found. Note that the best word to 
-   test is not necessarily a member of `candidates`."
+   test is not necessarily a member of `candidates`.
+
+   TODO: the idea hear was to generate the most efficient possible test strings,
+   but it added a lot of complexity and doesn't work well so it is currently not
+   used."
   [patterns candidates]
   (let [f  (with-mark patterns :found)
         fs (remove empty? f)
@@ -202,17 +229,17 @@
     ;; (println (str "Others: " (doall o)))
     (let [eureka (= (count fs) word-length)]
       {:eureka eureka
-       :cand (apply
-              str
-              (if eureka
-                fs
-                (map
-                 #(cond
-                    (nil? (nth f %)) (nth o %) ;; if it's a found position, try the next char we don't know about
-                    (> (count p) 1) (alternate-possible patterns p o %)
-                    :else (nth o %)) ;; not ideal; probably use `loop` instead of `map` 
+       :cand   (apply
+                str
+                (if eureka
+                  fs
+                  (map
+                   #(cond
+                      (nil? (nth f %)) (nth o %) ;; if it's a found position, try the next char we don't know about
+                      (> (count p) 1) (alternate-possible patterns p o %)
+                      :else (nth o %)) ;; not ideal; probably use `loop` instead of `map` 
                           ;; so we can try others in strict order
-                 (range word-length))))})))
+                   (range word-length))))})))
 
 (defn solve
   "Solve a wordle; with no arguments, start with a new random word; otherwise,
