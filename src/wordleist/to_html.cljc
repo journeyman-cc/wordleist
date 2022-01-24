@@ -1,6 +1,7 @@
 (ns wordleist.to-html
   "Display solutions to wordle-style puzzles."
-  (:require [hiccup.core :refer [html]]))
+  (:require #?(:clj [hiccup.core :refer [html]]
+               :cljs [crate.core :refer [html]])))
 
 (defn display-pattern
   "Display one `pattern` from a solution-map as a table row of tiles."

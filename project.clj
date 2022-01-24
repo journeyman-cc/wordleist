@@ -31,31 +31,39 @@
                                        :stable-names  true ;; not sure whether this is useful
                                        :pretty-print  false}}]}
 
+  :codox {:metadata    {:doc        "**TODO**: write docs"
+                        :doc/format :markdown}
+          :output-path "docs/codox"
+          :source-uri  "https://github.com/journeyman-cc/wordleist/blob/master/{filepath}#L{line}"}
+
   :dependencies [;;[cljs-http "0.1.46"]
+                 [crate "0.2.5"]
                  [org.clojure/clojure "1.10.3"]
                  [org.clojure/clojurescript "1.10.520"]
+                 [hiccup "1.0.5"]
+                 ;; [hiccups "0.3.0"]
                  ;;[org.clojure/core.async  "0.4.500"]
                  ]
-  
+
   :description "A Clojure library designed to generate and solve wordle-style puzzles."
-  
+
   :figwheel {;; :http-server-root "public" ;; default and assumes "resources"
              ;; :server-port 3449 ;; default
              ;; :server-ip "127.0.0.1"
-             
+
              ;; :css-dirs ["resources/public/css"] ;; watch and update CSS
-             
+
              ;; Start an nREPL server into the running figwheel process
              ;; :nrepl-port 7888
-             
+
              ;; Server Ring Handler (optional)
              ;; if you want to embed a ring handler into the figwheel http-kit
              ;; server, this is for simple ring servers, if this
-             
+
              ;; doesn't work for you just run your own server :) (see lein-ring)
-             
+
              ;; :ring-handler hello_world.server/handler
-             
+
              ;; To be able to open files in your editor from the heads up display
              ;; you will need to put a script on your path.
              ;; that script will have to take a file path and a line number
@@ -64,16 +72,16 @@
              ;; emacsclient -n +$2 $1
              ;;
              ;; :open-file-command "myfile-opener"
-             
+
              ;; if you are using emacsclient you can just use
              ;; :open-file-command "emacsclient"
-             
+
              ;; if you want to disable the REPL
              ;; :repl false
-             
+
              ;; to configure a different figwheel logfile path
              ;; :server-logfile "tmp/logs/figwheel-logfile.log"
-             
+
              ;; to pipe all the output to the repl
              ;; :server-logfile false
              }
@@ -85,10 +93,10 @@
             [lein-codox "0.10.8"]
             [lein-figwheel "0.5.19"]
             [lein-npm "0.6.2"]]
-  
-  :profiles {:dev {:dependencies  [[binaryage/devtools "1.0.4"]
-                                   [figwheel-sidecar "0.5.20"]
-                                   [thheller/shadow-cljs "2.16.12"]]
+
+  :profiles {:dev {:dependencies  [[binaryage/devtools "0.9.10"]
+                                   [figwheel-sidecar "0.5.19"]
+                                   [thheller/shadow-cljs "2.11.7"]]
                    ;; need to add dev source path here to get user.clj loaded
                    :source-paths  ["src" "dev"]
                    ;; need to add the compliled assets to the :clean-targets
@@ -96,7 +104,7 @@
                                                      :target-path]}}
 
   :repl-options {:init-ns wordleist.core}
-  
+
   :source-paths ["src"]
-  
+
   :url "http://example.com/FIXME")
