@@ -1,0 +1,32 @@
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="css/style.css" rel="stylesheet" type="text/css">
+    <title>Wordleist</title>
+</head>
+
+<body>
+    <div id="target"></div>
+<script src="js/compiled/wordleist.js" type="text/javascript"></script>
+<script type="text/javascript">
+    var content = wordleist.to_html.display(wordleist.core.solve(wordleist.core.wordle_gen()));
+
+    /* the following section stolen shamelessly from
+     * https://stackoverflow.com/questions/13388379/js-how-to-replace-html-element-with-another-element-text-represented-in-string 
+     */
+    var Obj = document.getElementById('target'); //any element to be fully replaced
+        if (Obj.outerHTML) { //if outerHTML is supported
+            Obj.outerHTML = content; ///it's simple replacement of whole element with contents of str var
+        }
+        else { //if outerHTML is not supported, there is a weird but crossbrowsered trick
+            var tmpObj = document.createElement("div");
+            tmpObj.innerHTML = '<!--THIS DATA SHOULD BE REPLACED-->';
+            ObjParent = Obj.parentNode; //Okey, element should be parented
+            ObjParent.replaceChild(tmpObj, Obj); //here we placing our temporary data instead of our target, so we can find it then and replace it into whatever we want to replace to
+            ObjParent.innerHTML = ObjParent.innerHTML.replace('<div><!--THIS DATA SHOULD BE REPLACED--></div>', content);
+        }
+</script>
+</body>
+</html>

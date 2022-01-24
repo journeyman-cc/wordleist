@@ -1,8 +1,8 @@
 (ns wordleist.core
+  "Generate and solve wordle-style puzzles."
   (:require #?(:clj  [clojure.java.io :refer [resource]]
                :cljs [shadow.resource :refer [inline]])
             [clojure.string :refer [join split-lines]]
-            ;; [clojure.pprint :refer [pprint]]
             ))
 
 (def word-length
@@ -143,7 +143,6 @@
                :cljs js/Error.) (str "Not a pattern: " patterns))))
   (reduce
    (fn [s1 s2]
-     ;; (println (str "s1: " (join "/" (map print-str s1)) "; s2: " (join "/" (map print-str s2))))
      (map #(if (char? (nth s1 %)) (nth s1 %) (nth s2 %))
           (range word-length)))
    (repeat word-length (vector))
@@ -223,10 +222,6 @@
         fs (remove empty? f)
         p  (seq (set (remove-all fs (all-with-mark patterns :present))))
         o  (remove-all-with-mark patterns :not-present)]
-    ;; (println (str "Found: " (doall f)))
-    ;; (println (str "fs: " (doall fs)))
-    ;; (println (str "Present: " (doall p)))    
-    ;; (println (str "Others: " (doall o)))
     (let [eureka (= (count fs) word-length)]
       {:eureka eureka
        :cand   (apply
@@ -258,13 +253,9 @@
           to-test  (first candidates)
           patterns patterns
           cands    candidates]
-    ;;  (println "--------")
-    ;;  (println (first patterns))
-     ;; (pprint patterns)
-     (let [e (with-mark patterns :found)]       
-      ;;  (println "Eureka? ...") (pprint e)
+     (let [εὕρηκα (with-mark patterns :found)]       
        (cond (> i 6) nil
-             (every? char? e) {:word     (apply str e)
+             (every? char? εὕρηκα) {:word     (apply str εὕρηκα)
                                :attempts (count patterns)
                                :patterns (reverse patterns)}
              :else (case (count cands)
