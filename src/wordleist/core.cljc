@@ -1,26 +1,37 @@
 (ns wordleist.core
-  (:require [clojure.java.io :refer [reader resource]]
+  (:require #?(:clj  [clojure.java.io :refer [resource]]
+               :cljs [shadow.resource :refer [inline]])
             [clojure.string :refer [join split-lines]]
-            [clojure.pprint :refer [pprint]]))
+            ;; [clojure.pprint :refer [pprint]]
+            ))
 
 (def word-length 5)
 
+#?(:cljs (def sgb-words (inline "sgb-words.txt")))
+
 (def freq
   "Frequency-sorted list of letters in the candidate words."
-  (let [f (dissoc (frequencies (slurp (resource "sgb-words.txt"))) \newline)]
+  (let [f (dissoc (frequencies #?(:clj (slurp (resource "sgb-words.txt"))
+                                  :cljs sgb-words)) \newline)]
     (sort #(> (f %1) (f %2)) (keys f))))
 
 (def words
   "The candidate words."
   (cons
    (apply str (take 5 freq)) ;; prepend a fake word comprising the five most frequent letters
-   (split-lines (slurp (resource "sgb-words.txt")))))
+   (split-lines #?(:clj (slurp (resource "sgb-words.txt"))
+                   :cljs sgb-words))))
 
+(defn throw-exception
+  "Throw an exception with this message in either Clojure or ClojureScript."
+  [message]
+  (throw (#?(:clj Exception.
+             :cljs js/Error.) message)))
 
 (defn check-length [target name]
   (when-not (= (count target) word-length)
-    (throw (Exception. (str name " must have exactly " word-length " letters; '"
-                            target "' has " (count target)))))
+    (throw-exception (str name " must have exactly " word-length " letters; '"
+                          target "' has " (count target))))
   true)
 
 (defn member?
@@ -110,7 +121,7 @@
   (and (seq? pattern)
        (= (count pattern) word-length)
        (every? true?
-               (map #(cond 
+               (map #(cond
                        (nil? %) true
                        (and (seq %) (keyword? (first %)) (char? (nth % 1))) true
                        :else false)
@@ -120,9 +131,9 @@
   "Return a list of `word-length` elements, comprising all those characters
    which are marked `mark` in any of these patterns."
   [patterns mark]
-  (when-not 
+  (when-not
    (every? pattern? patterns)
-    (throw (Exception. (str "Not a pattern: " patterns))))
+    (throw-exception (str "Not a pattern: " patterns)))
   (reduce
    (fn [s1 s2]
      ;; (println (str "s1: " (join "/" (map print-str s1)) "; s2: " (join "/" (map print-str s2))))
@@ -170,15 +181,15 @@
    `patterns`, return the first which has never been marked as `possible` in this
    `position`."
   [patterns possibles others position]
-  (let [already-tried (remove nil? 
+  (let [already-tried (remove nil?
                               (map #(let [e (nth % position)]
                                       (when (= :not-present (first e))
-                                               (nth e 1)))
+                                        (nth e 1)))
                                    patterns))
         possibles'    (remove-all already-tried possibles)]
-  (if (empty? possibles')
-    (first others)
-    (first possibles'))))
+    (if (empty? possibles')
+      (first others)
+      (first possibles'))))
 
 (defn generate
   "Generate the next word to test, given these `patterns` from previous tests, 
@@ -195,17 +206,17 @@
     ;; (println (str "Others: " (doall o)))
     (let [eureka (= (count fs) word-length)]
       {:eureka eureka
-       :cand (apply
-              str
-              (if eureka
-                fs
-                (map
-                 #(cond
-                    (nil? (nth f %)) (nth o %) ;; if it's a found position, try the next char we don't know about
-                    (> (count p) 1) (alternate-possible patterns p o %)
-                    :else (nth o %)) ;; not ideal; probably use `loop` instead of `map` 
+       :cand   (apply
+                str
+                (if eureka
+                  fs
+                  (map
+                   #(cond
+                      (nil? (nth f %)) (nth o %) ;; if it's a found position, try the next char we don't know about
+                      (> (count p) 1) (alternate-possible patterns p o %)
+                      :else (nth o %)) ;; not ideal; probably use `loop` instead of `map` 
                           ;; so we can try others in strict order
-                 (range word-length))))})))
+                   (range word-length))))})))
 
 (defn solve
   "Solve a wordle; with no arguments, start with a new random word; otherwise,
@@ -227,7 +238,7 @@
     ;;  (println "--------")
     ;;  (println (first patterns))
      ;; (pprint patterns)
-     (let [e (with-mark patterns :found)]       
+     (let [e (with-mark patterns :found)]
       ;;  (println "Eureka? ...") (pprint e)
        (cond (> i 6) nil
              (every? char? e) {:word     (apply str e)
@@ -242,7 +253,7 @@
                      (let [pattern   (apply game (list to-test))
                            patterns' (cons pattern patterns)
                            cands'    (refine-candidates cands to-test pattern)]
-                       (recur (inc i) 
+                       (recur (inc i)
                               (first cands')
                               patterns'
                               (rest cands')))))))))
