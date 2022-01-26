@@ -33,27 +33,30 @@
     </p>
     <ol>
         <li>A pattern matches all five characters;</li>
-        <li>Only one word remains in the candidate set (this is probably a bug; see below);</li>
+        <li>No word remains in the candidate set;</li>
         <li>All six turns have been exhausted.</li>
     </ol>
     <h2>Evaluation</h2>
     <p>
-        Wordleist solves the overwhelming majority of puzzles within six attempts, but not all. A more
+        Wordleist currently solves 77% of puzzles within six attempts, but not all. A more
         sophisticated generate function would improve this performance, but it's amazing how successful
         the 'just test the first remaining of the non-eliminiated candidates' algorithm is.
     </p>
+    <p>
+        The distribution of results, at present, is as follows:
+    </p>
+    <pre>
+            1 : # (0 %)
+            2 : # (0 %)
+            3 : #### (4 %)
+            4 : ############ (17 %)
+            5 : #################### (28 %)
+            6 : ################## (25 %)
+     failures : ################# (23 %)
+    </pre>
     <h2>Further development and known errors</h2>
     <p>
-        A more sophisticated mechanism for choosing the next 'word' to try is represented by the function
-        <code><a href="codox/wordleist.core.html#var-generate">generate</a>, but this doesn't yet work,
-        and is currently disabled.</code>
-    </p>
-    <p>
-        There is a bug here which I haven't fixed: when wordleist has eliminiated
-        every word in the candidate set except one, it will report that word and
-        exit, without actually testing that word. Sometimes I don't think that
-        word is the right word, but I can't actually prove that yet since the right
-        word is in a closure I can't inspect.
+        A more sophisticated mechanism for choosing the next 'word' to try is still needed.</code>
     </p>
 
     <footer>
