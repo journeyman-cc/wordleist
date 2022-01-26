@@ -1,4 +1,4 @@
-(defproject wordleist "0.1.1-SNAPSHOT"
+(defproject wordleist "0.1.2-SNAPSHOT"
   :cljsbuild {:builds [{:id           "dev"
                         :source-paths ["src"]
 
