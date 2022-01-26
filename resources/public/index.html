@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="css/style.css" rel="stylesheet" type="text/css">
+    <title>Wordleist</title>
+</head>
+
+<body>
+    <div id="target"></div>
+
+    <h2>Documentation</h2>
+    <p>
+        Source code documentation is <a href="codox/index.html">here</a>;
+        test coverage data is <a href="cloverage/index.html">here</a>
+    </p>
+    <h2>Running</h2>
+    <p>
+        To rerun Wordleist simply refresh this page.
+    </p>
+    <h2>Algorithm</h2>
+    <p>The Wordleist <code><a href="codox/wordleist.core.html#var-solve">solve</a></code> function starts
+        by testing a fake 'word' comprising the five most frequent letters
+        in the candidate word list. It inspects the pattern returned from the
+        <code><a href="codox/wordleist.core.html#var-wordle">wordle</a></code> function, and
+        elimininates all those words which are not
+        <code><a href="codox/wordleist.core.html#var-consistent.3F">consistent</a></code> with that pattern.
+    </p>
+    <p>
+        It then takes the first word remaining in the candidate list, and repeats the cycle, until
+    </p>
+    <ol>
+        <li>A pattern matches all five characters;</li>
+        <li>Only one word remains in the candidate set (this is probably a bug; see below);</li>
+        <li>All six turns have been exhausted.</li>
+    </ol>
+    <h2>Evaluation</h2>
+    <p>
+        Wordleist solves the overwhelming majority of puzzles within six attempts, but not all. A more
+        sophisticated generate function would improve this performance, but it's amazing how successful
+        the 'just test the first remaining of the non-eliminiated candidates' algorithm is.
+    </p>
+    <h2>Further development and known errors</h2>
+    <p>
+        A more sophisticated mechanism for choosing the next 'word' to try is represented by the function
+        <code><a href="codox/wordleist.core.html#var-generate">generate</a>, but this doesn't yet work,
+        and is currently disabled.</code>
+    </p>
+    <p>
+        There is a bug here which I haven't fixed: when wordleist has eliminiated
+        every word in the candidate set except one, it will report that word and
+        exit, without actually testing that word. Sometimes I don't think that
+        word is the right word, but I can't actually prove that yet since the right
+        word is in a closure I can't inspect.
+    </p>
+
+    <footer>
+        <div id="credits">
+            <div>
+                <img height="16" width="16" alt="Clojure" src="img/credits/clojure-icon.gif" /> Powered by
+                <a href="http://clojure.org">Clojure</a> ||
+                <img height="16" width="16" alt="GitHub" src="img/credits/github-logo-transparent.png" />Find me/fork me
+                on
+                <a href="https://github.com/journeyman-cc/wordleist">Github</a> ||
+                <img height="16" width="16" alt="Free Software Foundation" src="img/credits/gnu.small.png" />Licensed
+                under
+                the
+                <a href="http://www.gnu.org/licenses/gpl-2.0.html">GNU General Public License version 2.0</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/compiled/wordleist.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        var Target = document.getElementById('target');
+        var Parent = Target.parentNode;
+
+        Parent.replaceChild(wordleist.core.display(wordleist.core.solve(wordleist.core.wordle_gen())),
+            Target);
+    </script>
+</body>
+
+</html>
