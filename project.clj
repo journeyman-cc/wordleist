@@ -31,10 +31,15 @@
                                        :stable-names  true ;; not sure whether this is useful
                                        :pretty-print  false}}]}
 
+  :cloverage {:output    "docs/cloverage"
+              :codecov?  true
+              :emma-xml? true}
+
   :codox {:metadata    {:doc        "**TODO**: write docs"
                         :doc/format :markdown}
           :output-path "docs/codox"
-          :source-uri  "https://github.com/journeyman-cc/wordleist/blob/master/{filepath}#L{line}"}
+          :source-uri  "https://github.com/journeyman-cc/wordleist/blob/master/{filepath}#L{line}"
+          :language    :clojurescript}
 
   :dependencies [;;[cljs-http "0.1.46"]
                  [crate "0.2.5"]
@@ -90,6 +95,7 @@
             :url  "https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html"}
 
   :plugins [[lein-cljsbuild "1.1.7" :exclusions [[org.clojure/clojure]]]
+            [lein-cloverage "1.2.2"]
             [lein-codox "0.10.8"]
             [lein-figwheel "0.5.19"]
             [lein-npm "0.6.2"]]

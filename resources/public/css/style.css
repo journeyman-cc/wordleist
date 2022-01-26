@@ -1,0 +1,90 @@
+/* some style */
+
+body {
+  font-family: Helvetica, Ariel, sans-serif;
+  padding-bottom: 4em;
+}
+
+footer {
+  clear: both;
+  font-size: smaller;
+  text-align: center;
+  color:white;
+  background-color: #3298dc;
+  width: 100%;
+  margin: 0;
+  padding: 0.25em 0;
+  bottom:0;
+  position:fixed;
+  vertical-align: top;
+  z-index:150;
+  _position:absolute;
+  _top:expression(eval(document.documentElement.scrollTop+
+        (document.documentElement.clientHeight-this.offsetHeight)));
+}
+
+footer a {
+  color: #ddd;
+}
+
+
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+  padding: 0.5em 10%;
+  text-align: left;
+  background-color: #3298dc;
+  color: white;
+}
+
+div.wordleist table, p {
+  margin: 0;
+  padding: 0.5em 10%;
+}
+
+ol {
+  margin: 0;
+  padding: 0.5em 15%;
+}
+
+samp {
+  background-color: #b0b0ff;
+}
+
+td.found {
+  color: white;
+  background-color: darkgreen;
+}
+
+td.not-present {
+  color: white;
+  background-color: darkgray;
+}
+
+td.present {
+  color:white;
+  background-color: gold;
+}
+
+td.tile {
+  width: 2em;
+  height: 2em;
+  padding: 0.5em;
+}
+
+
+#error
+{
+  background-color: maroon;
+  color: white;
+  margin: 0px;
+  padding-left: 10%;
+}
+
+#message
+{
+  background-color: darkgreen;
+  color: white;
+  margin: 0px;
+  padding-left: 10%;
+}
+

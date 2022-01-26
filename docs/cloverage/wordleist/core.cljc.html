@@ -1,0 +1,899 @@
+<html>
+ <head>
+   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <link rel="stylesheet" href="../coverage.css"/>  <title> wordleist/core.cljc </title>
+ </head>
+ <body>
+<span class="covered" title="1 out of 1 forms covered">
+                001&nbsp;&nbsp;(ns&nbsp;^:export&nbsp;wordleist.core
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                002&nbsp;&nbsp;&nbsp;&nbsp;&quot;Generate&nbsp;and&nbsp;solve&nbsp;wordle-style&nbsp;puzzles.&quot;
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                003&nbsp;&nbsp;&nbsp;&nbsp;(:require&nbsp;#?(:clj&nbsp;&nbsp;[clojure.java.io&nbsp;:refer&nbsp;[resource]]
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                004&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:cljs&nbsp;[shadow.resource&nbsp;:refer&nbsp;[inline]])
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                005&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#?(:clj&nbsp;[hiccup.core&nbsp;:refer&nbsp;[html]]
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                006&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:cljs&nbsp;[crate.core&nbsp;:refer&nbsp;[html]])
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                007&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[clojure.string&nbsp;:refer&nbsp;[join&nbsp;split-lines]]))
+                </span><br/>
+<span class="blank" title="0 out of 0 forms covered">
+                008&nbsp;&nbsp;
+                </span><br/>
+<span class="covered" title="2 out of 2 forms covered">
+                009&nbsp;&nbsp;(def&nbsp;word-length
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                010&nbsp;&nbsp;&nbsp;&nbsp;&quot;The&nbsp;length&nbsp;of&nbsp;the&nbsp;words&nbsp;we&nbsp;operate&nbsp;on.&quot;
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                011&nbsp;&nbsp;&nbsp;&nbsp;5)
+                </span><br/>
+<span class="blank" title="0 out of 0 forms covered">
+                012&nbsp;&nbsp;
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                013&nbsp;&nbsp;#?(:cljs&nbsp;(def&nbsp;sgb-words
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                014&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;Full&nbsp;text&nbsp;of&nbsp;the&nbsp;`sgb-words.txt`&nbsp;file,&nbsp;inlined&nbsp;in&nbsp;ClojureScript&nbsp;only,&nbsp;since
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                015&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;in&nbsp;pure&nbsp;ClojureScript&nbsp;we&nbsp;have&nbsp;no&nbsp;filesystem.&quot;
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                016&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(inline&nbsp;&quot;sgb-words.txt&quot;)))
+                </span><br/>
+<span class="blank" title="0 out of 0 forms covered">
+                017&nbsp;&nbsp;
+                </span><br/>
+<span class="covered" title="1 out of 1 forms covered">
+                018&nbsp;&nbsp;(def&nbsp;freq
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                019&nbsp;&nbsp;&nbsp;&nbsp;&quot;Frequency-sorted&nbsp;list&nbsp;of&nbsp;letters&nbsp;in&nbsp;the&nbsp;candidate&nbsp;words.&quot;
+                </span><br/>
+<span class="covered" title="11 out of 11 forms covered">
+                020&nbsp;&nbsp;&nbsp;&nbsp;(let&nbsp;[f&nbsp;(dissoc&nbsp;(frequencies&nbsp;#?(:clj&nbsp;(slurp&nbsp;(resource&nbsp;&quot;sgb-words.txt&quot;))
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                021&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:cljs&nbsp;sgb-words))&nbsp;\newline)]
+                </span><br/>
+<span class="covered" title="13 out of 13 forms covered">
+                022&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(sort&nbsp;#(&gt;&nbsp;(f&nbsp;%1)&nbsp;(f&nbsp;%2))&nbsp;(keys&nbsp;f))))
+                </span><br/>
+<span class="blank" title="0 out of 0 forms covered">
+                023&nbsp;&nbsp;
+                </span><br/>
+<span class="covered" title="1 out of 1 forms covered">
+                024&nbsp;&nbsp;(def&nbsp;words
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                025&nbsp;&nbsp;&nbsp;&nbsp;&quot;The&nbsp;candidate&nbsp;words.&quot;
+                </span><br/>
+<span class="covered" title="2 out of 2 forms covered">
+                026&nbsp;&nbsp;&nbsp;&nbsp;(cons
+                </span><br/>
+<span class="covered" title="7 out of 7 forms covered">
+                027&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(apply&nbsp;str&nbsp;(take&nbsp;5&nbsp;freq))&nbsp;;;&nbsp;prepend&nbsp;a&nbsp;fake&nbsp;word&nbsp;comprising&nbsp;the&nbsp;five&nbsp;most&nbsp;frequent&nbsp;letters
+                </span><br/>
+<span class="covered" title="7 out of 7 forms covered">
+                028&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(split-lines&nbsp;#?(:clj&nbsp;(slurp&nbsp;(resource&nbsp;&quot;sgb-words.txt&quot;))
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                029&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:cljs&nbsp;sgb-words))))
+                </span><br/>
+<span class="blank" title="0 out of 0 forms covered">
+                030&nbsp;&nbsp;
+                </span><br/>
+<span class="covered" title="2 out of 2 forms covered">
+                031&nbsp;&nbsp;(defn&nbsp;check-length
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                032&nbsp;&nbsp;&nbsp;&nbsp;&quot;Check&nbsp;that&nbsp;this&nbsp;`target`&nbsp;is&nbsp;exactly&nbsp;`word-length`&nbsp;long,&nbsp;and&nbsp;throuw&nbsp;an&nbsp;exception&nbsp;labelled
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                033&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;with&nbsp;`name`&nbsp;if&nbsp;it&nbsp;is&nbsp;not.&quot;
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                034&nbsp;&nbsp;&nbsp;&nbsp;[target&nbsp;name]
+                </span><br/>
+<span class="partial" title="6 out of 7 forms covered">
+                035&nbsp;&nbsp;&nbsp;&nbsp;(when-not&nbsp;(=&nbsp;(count&nbsp;target)&nbsp;word-length)
+                </span><br/>
+<span class="not-covered" title="0 out of 2 forms covered">
+                036&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(throw&nbsp;(#?(:clj&nbsp;Exception.
+                </span><br/>
+<span class="not-covered" title="0 out of 7 forms covered">
+                037&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:cljs&nbsp;js&#x2F;Error.)&nbsp;(str&nbsp;name&nbsp;&quot;&nbsp;must&nbsp;have&nbsp;exactly&nbsp;&quot;&nbsp;word-length&nbsp;&quot;&nbsp;letters;&nbsp;&#x27;&quot;
+                </span><br/>
+<span class="not-covered" title="0 out of 3 forms covered">
+                038&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;target&nbsp;&quot;&#x27;&nbsp;has&nbsp;&quot;&nbsp;(count&nbsp;target)))))
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                039&nbsp;&nbsp;&nbsp;&nbsp;true)
+                </span><br/>
+<span class="blank" title="0 out of 0 forms covered">
+                040&nbsp;&nbsp;
+                </span><br/>
+<span class="covered" title="1 out of 1 forms covered">
+                041&nbsp;&nbsp;(defn&nbsp;member?
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                042&nbsp;&nbsp;&nbsp;&nbsp;&quot;true&nbsp;if&nbsp;`target`&nbsp;is&nbsp;a&nbsp;member&nbsp;of&nbsp;`collection`,&nbsp;else&nbsp;false.&quot;
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                043&nbsp;&nbsp;&nbsp;&nbsp;[target&nbsp;collection]
+                </span><br/>
+<span class="not-covered" title="0 out of 7 forms covered">
+                044&nbsp;&nbsp;&nbsp;&nbsp;(some&nbsp;#(=&nbsp;target&nbsp;%)&nbsp;collection))
+                </span><br/>
+<span class="blank" title="0 out of 0 forms covered">
+                045&nbsp;&nbsp;
+                </span><br/>
+<span class="covered" title="1 out of 1 forms covered">
+                046&nbsp;&nbsp;(defn&nbsp;wordle
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                047&nbsp;&nbsp;&nbsp;&nbsp;&quot;given&nbsp;this&nbsp;`target`&nbsp;as&nbsp;the&nbsp;word&nbsp;sought,&nbsp;return&nbsp;the&nbsp;wordle&nbsp;pattern&nbsp;for&nbsp;this
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                048&nbsp;&nbsp;&nbsp;&nbsp;`guess`.&quot;
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                049&nbsp;&nbsp;&nbsp;&nbsp;[target&nbsp;guess]
+                </span><br/>
+<span class="covered" title="4 out of 4 forms covered">
+                050&nbsp;&nbsp;&nbsp;&nbsp;(check-length&nbsp;target&nbsp;&quot;target&quot;)
+                </span><br/>
+<span class="covered" title="4 out of 4 forms covered">
+                051&nbsp;&nbsp;&nbsp;&nbsp;(check-length&nbsp;guess&nbsp;&quot;guess&quot;)
+                </span><br/>
+<span class="covered" title="3 out of 3 forms covered">
+                052&nbsp;&nbsp;&nbsp;&nbsp;(map
+                </span><br/>
+<span class="covered" title="4 out of 4 forms covered">
+                053&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#(let&nbsp;[seeking&nbsp;(nth&nbsp;guess&nbsp;%)]
+                </span><br/>
+<span class="partial" title="2 out of 3 forms covered">
+                054&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(cond
+                </span><br/>
+<span class="covered" title="8 out of 8 forms covered">
+                055&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(=&nbsp;(nth&nbsp;target&nbsp;%)&nbsp;seeking)&nbsp;[:found&nbsp;seeking]
+                </span><br/>
+<span class="covered" title="10 out of 10 forms covered">
+                056&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(some&nbsp;(fn&nbsp;[x]&nbsp;(=&nbsp;seeking&nbsp;x))&nbsp;target)&nbsp;[:present&nbsp;seeking]
+                </span><br/>
+<span class="not-covered" title="0 out of 3 forms covered">
+                057&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:else&nbsp;[:not-present&nbsp;seeking]))
+                </span><br/>
+<span class="covered" title="4 out of 4 forms covered">
+                058&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(range&nbsp;(count&nbsp;target))))
+                </span><br/>
+<span class="blank" title="0 out of 0 forms covered">
+                059&nbsp;&nbsp;
+                </span><br/>
+<span class="covered" title="1 out of 1 forms covered">
+                060&nbsp;&nbsp;(defn&nbsp;^:export&nbsp;wordle-gen
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                061&nbsp;&nbsp;&nbsp;&nbsp;&quot;Generate&nbsp;a&nbsp;new&nbsp;wordle&nbsp;function,&nbsp;whose&nbsp;target&nbsp;is&nbsp;a&nbsp;five&nbsp;letter&nbsp;word&nbsp;chosen&nbsp;
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                062&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;at&nbsp;random&nbsp;from&nbsp;the&nbsp;`words`&nbsp;list&quot;
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                063&nbsp;&nbsp;&nbsp;&nbsp;[]
+                </span><br/>
+<span class="not-covered" title="0 out of 6 forms covered">
+                064&nbsp;&nbsp;&nbsp;&nbsp;(partial&nbsp;wordle&nbsp;(rand-nth&nbsp;words)))
+                </span><br/>
+<span class="blank" title="0 out of 0 forms covered">
+                065&nbsp;&nbsp;
+                </span><br/>
+<span class="covered" title="1 out of 1 forms covered">
+                066&nbsp;&nbsp;(defn-&nbsp;in-consistent
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                067&nbsp;&nbsp;&nbsp;&nbsp;&quot;Internal&nbsp;guts&nbsp;of&nbsp;`consistent?`,&nbsp;q.v.&quot;
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                068&nbsp;&nbsp;&nbsp;&nbsp;[pattern&nbsp;target]
+                </span><br/>
+<span class="covered" title="13 out of 13 forms covered">
+                069&nbsp;&nbsp;&nbsp;&nbsp;(map&nbsp;#(let&nbsp;[present&nbsp;(some&nbsp;(fn&nbsp;[x]&nbsp;(=&nbsp;(nth&nbsp;%1&nbsp;1)&nbsp;x))&nbsp;target)]
+                </span><br/>
+<span class="partial" title="5 out of 12 forms covered">
+                070&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(case&nbsp;(first&nbsp;%1)
+                </span><br/>
+<span class="covered" title="5 out of 5 forms covered">
+                071&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:found&nbsp;(=&nbsp;(nth&nbsp;%1&nbsp;1)&nbsp;%2)
+                </span><br/>
+<span class="covered" title="1 out of 1 forms covered">
+                072&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:present&nbsp;present
+                </span><br/>
+<span class="not-covered" title="0 out of 3 forms covered">
+                073&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:not-present&nbsp;(not&nbsp;present)
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                074&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:not-found&nbsp;true))
+                </span><br/>
+<span class="covered" title="1 out of 1 forms covered">
+                075&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pattern
+                </span><br/>
+<span class="covered" title="1 out of 1 forms covered">
+                076&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;target))
+                </span><br/>
+<span class="blank" title="0 out of 0 forms covered">
+                077&nbsp;&nbsp;
+                </span><br/>
+<span class="covered" title="1 out of 1 forms covered">
+                078&nbsp;&nbsp;(defn&nbsp;consistent?
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                079&nbsp;&nbsp;&nbsp;&nbsp;&quot;Where&nbsp;`pattern`&nbsp;is&nbsp;a&nbsp;pattern&nbsp;as&nbsp;returned&nbsp;by&nbsp;`wordle`,&nbsp;and&nbsp;`target`&nbsp;is&nbsp;a
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                080&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;string&nbsp;representing&nbsp;a&nbsp;five&nbsp;letter&nbsp;word,&nbsp;return&nbsp;`true`&nbsp;it&nbsp;`target`&nbsp;is
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                081&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;consistent&nbsp;with&nbsp;`pattern`,&nbsp;else&nbsp;false.&quot;
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                082&nbsp;&nbsp;&nbsp;&nbsp;[pattern&nbsp;target]
+                </span><br/>
+<span class="covered" title="2 out of 2 forms covered">
+                083&nbsp;&nbsp;&nbsp;&nbsp;(every?
+                </span><br/>
+<span class="covered" title="1 out of 1 forms covered">
+                084&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;true?
+                </span><br/>
+<span class="covered" title="2 out of 2 forms covered">
+                085&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(in-consistent
+                </span><br/>
+<span class="covered" title="1 out of 1 forms covered">
+                086&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pattern
+                </span><br/>
+<span class="covered" title="1 out of 1 forms covered">
+                087&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;target)))
+                </span><br/>
+<span class="blank" title="0 out of 0 forms covered">
+                088&nbsp;&nbsp;
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                089&nbsp;&nbsp;;;&nbsp;OK,&nbsp;filtering&nbsp;the&nbsp;full&nbsp;list&nbsp;of&nbsp;words&nbsp;for&nbsp;consistency&nbsp;with&nbsp;patterns&nbsp;is&nbsp;very&nbsp;cheap:
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                090&nbsp;&nbsp;;;&nbsp;wordleist.core=&gt;&nbsp;(def&nbsp;p&nbsp;(wordle&nbsp;&quot;water&quot;&nbsp;&quot;aertw&quot;))
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                091&nbsp;&nbsp;;;&nbsp;#&#x27;wordleist.core&#x2F;p
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                092&nbsp;&nbsp;;;&nbsp;wordleist.core=&gt;&nbsp;(time&nbsp;(filter&nbsp;#(when&nbsp;(consistent?&nbsp;p&nbsp;%)&nbsp;%)&nbsp;words))
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                093&nbsp;&nbsp;;;&nbsp;&quot;Elapsed&nbsp;time:&nbsp;0.114842&nbsp;msecs&quot;
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                094&nbsp;&nbsp;;;&nbsp;(&quot;water&quot;)
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                095&nbsp;&nbsp;;;&nbsp;so&nbsp;it&#x27;s&nbsp;probably&nbsp;worth&nbsp;filtering&nbsp;the&nbsp;candidate&nbsp;list&nbsp;after&nbsp;each&nbsp;attempt
+                </span><br/>
+<span class="blank" title="0 out of 0 forms covered">
+                096&nbsp;&nbsp;
+                </span><br/>
+<span class="covered" title="1 out of 1 forms covered">
+                097&nbsp;&nbsp;(defn&nbsp;ignore-not-present
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                098&nbsp;&nbsp;&nbsp;&nbsp;&quot;Replace&nbsp;all&nbsp;occurances&nbsp;of&nbsp;:not-present&nbsp;in&nbsp;this&nbsp;`pattern`&nbsp;with&nbsp;:not-found.&quot;
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                099&nbsp;&nbsp;&nbsp;&nbsp;[pattern]
+                </span><br/>
+<span class="not-covered" title="0 out of 3 forms covered">
+                100&nbsp;&nbsp;&nbsp;&nbsp;(map
+                </span><br/>
+<span class="not-covered" title="0 out of 2 forms covered">
+                101&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#(if
+                </span><br/>
+<span class="not-covered" title="0 out of 10 forms covered">
+                102&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(=&nbsp;:not-present&nbsp;(first&nbsp;%))&nbsp;[:not-found&nbsp;(nth&nbsp;%&nbsp;1)]
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                103&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;%)
+                </span><br/>
+<span class="not-covered" title="0 out of 1 forms covered">
+                104&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pattern))
+                </span><br/>
+<span class="blank" title="0 out of 0 forms covered">
+                105&nbsp;&nbsp;
+                </span><br/>
+<span class="covered" title="1 out of 1 forms covered">
+                106&nbsp;&nbsp;(defn&nbsp;refine-candidates
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                107&nbsp;&nbsp;&nbsp;&nbsp;&quot;Refine&nbsp;these&nbsp;`candidates`&nbsp;by&nbsp;removing&nbsp;those&nbsp;which&nbsp;are&nbsp;not&nbsp;consistent&nbsp;with&nbsp;this&nbsp;`pattern`,
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                108&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;generated&nbsp;from&nbsp;this&nbsp;`word`.&quot;
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                109&nbsp;&nbsp;&nbsp;&nbsp;([candidates&nbsp;pattern]
+                </span><br/>
+<span class="not-covered" title="0 out of 3 forms covered">
+                110&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(refine-candidates&nbsp;candidates
+                </span><br/>
+<span class="not-covered" title="0 out of 10 forms covered">
+                111&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(apply&nbsp;str&nbsp;(map&nbsp;#(nth&nbsp;%&nbsp;1)&nbsp;pattern))
+                </span><br/>
+<span class="not-covered" title="0 out of 1 forms covered">
+                112&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pattern))
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                113&nbsp;&nbsp;&nbsp;&nbsp;([candidates&nbsp;word&nbsp;pattern]
+                </span><br/>
+<span class="not-covered" title="0 out of 3 forms covered">
+                114&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(filter
+                </span><br/>
+<span class="not-covered" title="0 out of 6 forms covered">
+                115&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#(when&nbsp;(consistent?
+                </span><br/>
+<span class="not-covered" title="0 out of 5 forms covered">
+                116&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(if&nbsp;(member?&nbsp;word&nbsp;candidates)
+                </span><br/>
+<span class="not-covered" title="0 out of 1 forms covered">
+                117&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pattern
+                </span><br/>
+<span class="not-covered" title="0 out of 3 forms covered">
+                118&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(ignore-not-present&nbsp;pattern))
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                119&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;%)&nbsp;%)
+                </span><br/>
+<span class="not-covered" title="0 out of 1 forms covered">
+                120&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;candidates)))
+                </span><br/>
+<span class="blank" title="0 out of 0 forms covered">
+                121&nbsp;&nbsp;
+                </span><br/>
+<span class="covered" title="1 out of 1 forms covered">
+                122&nbsp;&nbsp;(defn&nbsp;pattern?
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                123&nbsp;&nbsp;&nbsp;&nbsp;&quot;Validate&nbsp;wordle&nbsp;patterns.&nbsp;Return&nbsp;`true`&nbsp;if&nbsp;`pattern`&nbsp;is&nbsp;a&nbsp;valid&nbsp;pattern,&nbsp;else&nbsp;`false`.
+                </span><br/>
+<span class="blank" title="0 out of 0 forms covered">
+                124&nbsp;&nbsp;
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                125&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;A&nbsp;pattern&nbsp;is&nbsp;a&nbsp;sequence&nbsp;of&nbsp;`word-length`&nbsp;sequences,&nbsp;such&nbsp;that:
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                126&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1.&nbsp;every&nbsp;element&nbsp;is&nbsp;a&nbsp;sequence,&nbsp;or&nbsp;nil;
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                127&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.&nbsp;the&nbsp;first&nbsp;element&nbsp;of&nbsp;every&nbsp;sequence&nbsp;which&nbsp;is&nbsp;not&nbsp;nil&nbsp;is&nbsp;a&nbsp;keyword;
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                128&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3.&nbsp;the&nbsp;second&nbsp;element&nbsp;of&nbsp;every&nbsp;sequence&nbsp;which&nbsp;is&nbsp;not&nbsp;nil&nbsp;is&nbsp;a&nbsp;character.&quot;
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                129&nbsp;&nbsp;&nbsp;&nbsp;[pattern]
+                </span><br/>
+<span class="partial" title="10 out of 12 forms covered">
+                130&nbsp;&nbsp;&nbsp;&nbsp;(and&nbsp;(seq?&nbsp;pattern)
+                </span><br/>
+<span class="covered" title="4 out of 4 forms covered">
+                131&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(=&nbsp;(count&nbsp;pattern)&nbsp;word-length)
+                </span><br/>
+<span class="covered" title="2 out of 2 forms covered">
+                132&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(every?&nbsp;true?
+                </span><br/>
+<span class="partial" title="6 out of 9 forms covered">
+                133&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(map&nbsp;#(cond
+                </span><br/>
+<span class="covered" title="3 out of 3 forms covered">
+                134&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(nil?&nbsp;%)&nbsp;true
+                </span><br/>
+<span class="partial" title="19 out of 21 forms covered">
+                135&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(and&nbsp;(seq&nbsp;%)&nbsp;(keyword?&nbsp;(first&nbsp;%))&nbsp;(char?&nbsp;(nth&nbsp;%&nbsp;1)))&nbsp;true
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                136&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:else&nbsp;false)
+                </span><br/>
+<span class="covered" title="1 out of 1 forms covered">
+                137&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pattern))))
+                </span><br/>
+<span class="blank" title="0 out of 0 forms covered">
+                138&nbsp;&nbsp;
+                </span><br/>
+<span class="covered" title="1 out of 1 forms covered">
+                139&nbsp;&nbsp;(defn&nbsp;with-mark
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                140&nbsp;&nbsp;&nbsp;&nbsp;&quot;Return&nbsp;a&nbsp;list&nbsp;of&nbsp;`word-length`&nbsp;elements,&nbsp;comprising&nbsp;all&nbsp;those&nbsp;characters
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                141&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;which&nbsp;are&nbsp;marked&nbsp;`mark`&nbsp;in&nbsp;any&nbsp;of&nbsp;these&nbsp;patterns.&quot;
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                142&nbsp;&nbsp;&nbsp;&nbsp;[patterns&nbsp;mark]
+                </span><br/>
+<span class="partial" title="2 out of 3 forms covered">
+                143&nbsp;&nbsp;&nbsp;&nbsp;(when-not
+                </span><br/>
+<span class="covered" title="4 out of 4 forms covered">
+                144&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(every?&nbsp;pattern?&nbsp;patterns)
+                </span><br/>
+<span class="not-covered" title="0 out of 2 forms covered">
+                145&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(throw&nbsp;(#?(:clj&nbsp;Exception.
+                </span><br/>
+<span class="not-covered" title="0 out of 4 forms covered">
+                146&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:cljs&nbsp;js&#x2F;Error.)&nbsp;(str&nbsp;&quot;Not&nbsp;a&nbsp;pattern:&nbsp;&quot;&nbsp;patterns))))
+                </span><br/>
+<span class="covered" title="2 out of 2 forms covered">
+                147&nbsp;&nbsp;&nbsp;&nbsp;(reduce
+                </span><br/>
+<span class="covered" title="1 out of 1 forms covered">
+                148&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(fn&nbsp;[s1&nbsp;s2]
+                </span><br/>
+<span class="covered" title="15 out of 15 forms covered">
+                149&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(map&nbsp;#(if&nbsp;(char?&nbsp;(nth&nbsp;s1&nbsp;%))&nbsp;(nth&nbsp;s1&nbsp;%)&nbsp;(nth&nbsp;s2&nbsp;%))
+                </span><br/>
+<span class="covered" title="3 out of 3 forms covered">
+                150&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(range&nbsp;word-length)))
+                </span><br/>
+<span class="covered" title="5 out of 5 forms covered">
+                151&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(repeat&nbsp;word-length&nbsp;(vector))
+                </span><br/>
+<span class="covered" title="2 out of 2 forms covered">
+                152&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(map
+                </span><br/>
+<span class="covered" title="1 out of 1 forms covered">
+                153&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(fn&nbsp;[p]
+                </span><br/>
+<span class="covered" title="2 out of 2 forms covered">
+                154&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(map
+                </span><br/>
+<span class="covered" title="1 out of 1 forms covered">
+                155&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(fn&nbsp;[e]
+                </span><br/>
+<span class="covered" title="7 out of 7 forms covered">
+                156&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(when&nbsp;(=&nbsp;mark&nbsp;(first&nbsp;e))
+                </span><br/>
+<span class="covered" title="3 out of 3 forms covered">
+                157&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(nth&nbsp;e&nbsp;1)))
+                </span><br/>
+<span class="covered" title="1 out of 1 forms covered">
+                158&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;p))
+                </span><br/>
+<span class="covered" title="1 out of 1 forms covered">
+                159&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;patterns)))
+                </span><br/>
+<span class="blank" title="0 out of 0 forms covered">
+                160&nbsp;&nbsp;
+                </span><br/>
+<span class="covered" title="1 out of 1 forms covered">
+                161&nbsp;&nbsp;(defn&nbsp;all-with-mark
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                162&nbsp;&nbsp;&nbsp;&nbsp;&quot;Return&nbsp;a&nbsp;sequence&nbsp;of&nbsp;indefinite&nbsp;length,&nbsp;containung&nbsp;all&nbsp;characters&nbsp;with&nbsp;
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                163&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this&nbsp;`mark`&nbsp;in&nbsp;these&nbsp;`patterns`.
+                </span><br/>
+<span class="blank" title="0 out of 0 forms covered">
+                164&nbsp;&nbsp;
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                165&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;As&nbsp;with&nbsp;`generate&nbsp;`which&nbsp;depends&nbsp;on&nbsp;it,&nbsp;this&nbsp;is&nbsp;experimental&nbsp;code&nbsp;which&nbsp;is&nbsp;currently
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                166&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;not&nbsp;used.&quot;
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                167&nbsp;&nbsp;&nbsp;&nbsp;[patterns&nbsp;mark]
+                </span><br/>
+<span class="not-covered" title="0 out of 3 forms covered">
+                168&nbsp;&nbsp;&nbsp;&nbsp;(remove&nbsp;nil?
+                </span><br/>
+<span class="not-covered" title="0 out of 2 forms covered">
+                169&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(flatten
+                </span><br/>
+<span class="not-covered" title="0 out of 2 forms covered">
+                170&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(map
+                </span><br/>
+<span class="not-covered" title="0 out of 1 forms covered">
+                171&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(fn&nbsp;[p]
+                </span><br/>
+<span class="not-covered" title="0 out of 2 forms covered">
+                172&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(map
+                </span><br/>
+<span class="not-covered" title="0 out of 1 forms covered">
+                173&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(fn&nbsp;[e]
+                </span><br/>
+<span class="not-covered" title="0 out of 7 forms covered">
+                174&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(when&nbsp;(=&nbsp;mark&nbsp;(first&nbsp;e))
+                </span><br/>
+<span class="not-covered" title="0 out of 3 forms covered">
+                175&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(nth&nbsp;e&nbsp;1)))
+                </span><br/>
+<span class="not-covered" title="0 out of 1 forms covered">
+                176&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;p))
+                </span><br/>
+<span class="not-covered" title="0 out of 1 forms covered">
+                177&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;patterns))))
+                </span><br/>
+<span class="blank" title="0 out of 0 forms covered">
+                178&nbsp;&nbsp;
+                </span><br/>
+<span class="covered" title="1 out of 1 forms covered">
+                179&nbsp;&nbsp;(defn&nbsp;remove-all
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                180&nbsp;&nbsp;&nbsp;&nbsp;&quot;Return&nbsp;a&nbsp;sequence&nbsp;like&nbsp;`seq`but&nbsp;with&nbsp;all&nbsp;members&nbsp;of&nbsp;`to-remove`&nbsp;removed.
+                </span><br/>
+<span class="blank" title="0 out of 0 forms covered">
+                181&nbsp;&nbsp;
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                182&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;As&nbsp;with&nbsp;`generate&nbsp;`which&nbsp;depends&nbsp;on&nbsp;it,&nbsp;this&nbsp;is&nbsp;experimental&nbsp;code&nbsp;which&nbsp;is&nbsp;currently
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                183&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;not&nbsp;used.&quot;
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                184&nbsp;&nbsp;&nbsp;&nbsp;[to-remove&nbsp;seq]
+                </span><br/>
+<span class="not-covered" title="0 out of 8 forms covered">
+                185&nbsp;&nbsp;&nbsp;&nbsp;(remove&nbsp;#(member?&nbsp;%&nbsp;to-remove)&nbsp;seq))
+                </span><br/>
+<span class="blank" title="0 out of 0 forms covered">
+                186&nbsp;&nbsp;
+                </span><br/>
+<span class="covered" title="1 out of 1 forms covered">
+                187&nbsp;&nbsp;(defn&nbsp;remove-all-with-mark
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                188&nbsp;&nbsp;&nbsp;&nbsp;&quot;Return&nbsp;a&nbsp;set&nbsp;of&nbsp;characters&nbsp;like&nbsp;`freq`,&nbsp;but&nbsp;with&nbsp;all&nbsp;marked&nbsp;with&nbsp;this&nbsp;`mark`&nbsp;in
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                189&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;any&nbsp;of&nbsp;these&nbsp;patterns&nbsp;removed.
+                </span><br/>
+<span class="blank" title="0 out of 0 forms covered">
+                190&nbsp;&nbsp;
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                191&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;As&nbsp;with&nbsp;`generate&nbsp;`which&nbsp;depends&nbsp;on&nbsp;it,&nbsp;this&nbsp;is&nbsp;experimental&nbsp;code&nbsp;which&nbsp;is&nbsp;currently
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                192&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;not&nbsp;used.&quot;
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                193&nbsp;&nbsp;&nbsp;&nbsp;[patterns&nbsp;mark]
+                </span><br/>
+<span class="not-covered" title="0 out of 5 forms covered">
+                194&nbsp;&nbsp;&nbsp;&nbsp;(let&nbsp;[np&nbsp;(all-with-mark&nbsp;patterns&nbsp;mark)]
+                </span><br/>
+<span class="not-covered" title="0 out of 4 forms covered">
+                195&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(remove-all&nbsp;np&nbsp;freq)))
+                </span><br/>
+<span class="blank" title="0 out of 0 forms covered">
+                196&nbsp;&nbsp;
+                </span><br/>
+<span class="covered" title="1 out of 1 forms covered">
+                197&nbsp;&nbsp;(defn-&nbsp;alternate-possible
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                198&nbsp;&nbsp;&nbsp;&nbsp;&quot;Where&nbsp;`possibles`&nbsp;is&nbsp;a&nbsp;list&nbsp;of&nbsp;characters&nbsp;which&nbsp;have&nbsp;been&nbsp;marked&nbsp;`possible`&nbsp;in&nbsp;these
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                199&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`patterns`,&nbsp;return&nbsp;the&nbsp;first&nbsp;which&nbsp;has&nbsp;never&nbsp;been&nbsp;marked&nbsp;as&nbsp;`possible`&nbsp;in&nbsp;this
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                200&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`position`.
+                </span><br/>
+<span class="blank" title="0 out of 0 forms covered">
+                201&nbsp;&nbsp;
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                202&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;As&nbsp;with&nbsp;`generate`,&nbsp;which&nbsp;depends&nbsp;on&nbsp;it,&nbsp;this&nbsp;is&nbsp;experimental&nbsp;code&nbsp;which&nbsp;is&nbsp;currently
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                203&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;not&nbsp;used.&quot;
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                204&nbsp;&nbsp;&nbsp;&nbsp;[patterns&nbsp;possibles&nbsp;others&nbsp;position]
+                </span><br/>
+<span class="not-covered" title="0 out of 4 forms covered">
+                205&nbsp;&nbsp;&nbsp;&nbsp;(let&nbsp;[already-tried&nbsp;(remove&nbsp;nil?
+                </span><br/>
+<span class="not-covered" title="0 out of 7 forms covered">
+                206&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(map&nbsp;#(let&nbsp;[e&nbsp;(nth&nbsp;%&nbsp;position)]
+                </span><br/>
+<span class="not-covered" title="0 out of 7 forms covered">
+                207&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(when&nbsp;(=&nbsp;:not-present&nbsp;(first&nbsp;e))
+                </span><br/>
+<span class="not-covered" title="0 out of 3 forms covered">
+                208&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(nth&nbsp;e&nbsp;1)))
+                </span><br/>
+<span class="not-covered" title="0 out of 1 forms covered">
+                209&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;patterns))
+                </span><br/>
+<span class="not-covered" title="0 out of 4 forms covered">
+                210&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;possibles&#x27;&nbsp;&nbsp;&nbsp;&nbsp;(remove-all&nbsp;already-tried&nbsp;possibles)]
+                </span><br/>
+<span class="not-covered" title="0 out of 4 forms covered">
+                211&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(if&nbsp;(empty?&nbsp;possibles&#x27;)
+                </span><br/>
+<span class="not-covered" title="0 out of 3 forms covered">
+                212&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(first&nbsp;others)
+                </span><br/>
+<span class="not-covered" title="0 out of 3 forms covered">
+                213&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(first&nbsp;possibles&#x27;))))
+                </span><br/>
+<span class="blank" title="0 out of 0 forms covered">
+                214&nbsp;&nbsp;
+                </span><br/>
+<span class="covered" title="1 out of 1 forms covered">
+                215&nbsp;&nbsp;(defn&nbsp;generate
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                216&nbsp;&nbsp;&nbsp;&nbsp;&quot;Generate&nbsp;the&nbsp;next&nbsp;word&nbsp;to&nbsp;test,&nbsp;given&nbsp;these&nbsp;`patterns`&nbsp;from&nbsp;previous&nbsp;tests,&nbsp;
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                217&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;and&nbsp;these&nbsp;`candidates`&nbsp;for&nbsp;the&nbsp;word&nbsp;to&nbsp;be&nbsp;found.&nbsp;Note&nbsp;that&nbsp;the&nbsp;best&nbsp;word&nbsp;to&nbsp;
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                218&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;test&nbsp;is&nbsp;not&nbsp;necessarily&nbsp;a&nbsp;member&nbsp;of&nbsp;`candidates`.
+                </span><br/>
+<span class="blank" title="0 out of 0 forms covered">
+                219&nbsp;&nbsp;
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                220&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;TODO:&nbsp;the&nbsp;idea&nbsp;hear&nbsp;was&nbsp;to&nbsp;generate&nbsp;the&nbsp;most&nbsp;efficient&nbsp;possible&nbsp;test&nbsp;strings,
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                221&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;but&nbsp;it&nbsp;added&nbsp;a&nbsp;lot&nbsp;of&nbsp;complexity&nbsp;and&nbsp;doesn&#x27;t&nbsp;work&nbsp;well&nbsp;so&nbsp;it&nbsp;is&nbsp;currently&nbsp;not
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                222&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;used.&quot;
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                223&nbsp;&nbsp;&nbsp;&nbsp;[patterns&nbsp;candidates]
+                </span><br/>
+<span class="not-covered" title="0 out of 5 forms covered">
+                224&nbsp;&nbsp;&nbsp;&nbsp;(let&nbsp;[f&nbsp;&nbsp;(with-mark&nbsp;patterns&nbsp;:found)
+                </span><br/>
+<span class="not-covered" title="0 out of 4 forms covered">
+                225&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;fs&nbsp;(remove&nbsp;empty?&nbsp;f)
+                </span><br/>
+<span class="not-covered" title="0 out of 11 forms covered">
+                226&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;p&nbsp;&nbsp;(seq&nbsp;(set&nbsp;(remove-all&nbsp;fs&nbsp;(all-with-mark&nbsp;patterns&nbsp;:present))))
+                </span><br/>
+<span class="not-covered" title="0 out of 4 forms covered">
+                227&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;o&nbsp;&nbsp;(remove-all-with-mark&nbsp;patterns&nbsp;:not-present)]
+                </span><br/>
+<span class="not-covered" title="0 out of 5 forms covered">
+                228&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(let&nbsp;[eureka&nbsp;(=&nbsp;(count&nbsp;fs)&nbsp;word-length)]
+                </span><br/>
+<span class="not-covered" title="0 out of 4 forms covered">
+                229&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{:eureka&nbsp;eureka
+                </span><br/>
+<span class="not-covered" title="0 out of 2 forms covered">
+                230&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:cand&nbsp;&nbsp;&nbsp;(apply
+                </span><br/>
+<span class="not-covered" title="0 out of 1 forms covered">
+                231&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;str
+                </span><br/>
+<span class="not-covered" title="0 out of 2 forms covered">
+                232&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(if&nbsp;eureka
+                </span><br/>
+<span class="not-covered" title="0 out of 1 forms covered">
+                233&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;fs
+                </span><br/>
+<span class="not-covered" title="0 out of 3 forms covered">
+                234&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(map
+                </span><br/>
+<span class="not-covered" title="0 out of 3 forms covered">
+                235&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#(cond
+                </span><br/>
+<span class="not-covered" title="0 out of 8 forms covered">
+                236&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(nil?&nbsp;(nth&nbsp;f&nbsp;%))&nbsp;(nth&nbsp;o&nbsp;%)&nbsp;;;&nbsp;if&nbsp;it&#x27;s&nbsp;a&nbsp;found&nbsp;position,&nbsp;try&nbsp;the&nbsp;next&nbsp;char&nbsp;we&nbsp;don&#x27;t&nbsp;know&nbsp;about
+                </span><br/>
+<span class="not-covered" title="0 out of 10 forms covered">
+                237&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(&gt;&nbsp;(count&nbsp;p)&nbsp;1)&nbsp;(alternate-possible&nbsp;patterns&nbsp;p&nbsp;o&nbsp;%)
+                </span><br/>
+<span class="not-covered" title="0 out of 3 forms covered">
+                238&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:else&nbsp;(nth&nbsp;o&nbsp;%))&nbsp;;;&nbsp;not&nbsp;ideal;&nbsp;probably&nbsp;use&nbsp;`loop`&nbsp;instead&nbsp;of&nbsp;`map`&nbsp;
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                239&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;;;&nbsp;so&nbsp;we&nbsp;can&nbsp;try&nbsp;others&nbsp;in&nbsp;strict&nbsp;order
+                </span><br/>
+<span class="not-covered" title="0 out of 3 forms covered">
+                240&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(range&nbsp;word-length))))})))
+                </span><br/>
+<span class="blank" title="0 out of 0 forms covered">
+                241&nbsp;&nbsp;
+                </span><br/>
+<span class="covered" title="1 out of 1 forms covered">
+                242&nbsp;&nbsp;(defn&nbsp;^:export&nbsp;solve
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                243&nbsp;&nbsp;&nbsp;&nbsp;&quot;Solve&nbsp;a&nbsp;wordle;&nbsp;with&nbsp;no&nbsp;arguments,&nbsp;start&nbsp;with&nbsp;a&nbsp;new&nbsp;random&nbsp;word;&nbsp;otherwise,
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                244&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;arguments&nbsp;are:
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                245&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;`game`&nbsp;a&nbsp;function&nbsp;of&nbsp;one&nbsp;argument,&nbsp;as&nbsp;generated&nbsp;by&nbsp;`wordle-gen`,&nbsp;which&nbsp;takes
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                246&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;a&nbsp;guessed&nbsp;word&nbsp;as&nbsp;argument&nbsp;and&nbsp;returns&nbsp;a&nbsp;pattern;
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                247&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;`patterns`&nbsp;a&nbsp;list&nbsp;of&nbsp;patterns&nbsp;from&nbsp;prior&nbsp;attempts;
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                248&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;`candidates`&nbsp;a&nbsp;list&nbsp;of&nbsp;words&nbsp;to&nbsp;use&nbsp;as&nbsp;candidates&nbsp;for&nbsp;guessing.&quot;
+                </span><br/>
+<span class="not-covered" title="0 out of 2 forms covered">
+                249&nbsp;&nbsp;&nbsp;&nbsp;([]&nbsp;(wordle-gen))
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                250&nbsp;&nbsp;&nbsp;&nbsp;([game]
+                </span><br/>
+<span class="not-covered" title="0 out of 4 forms covered">
+                251&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(solve&nbsp;game&nbsp;nil))
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                252&nbsp;&nbsp;&nbsp;&nbsp;([game&nbsp;patterns]
+                </span><br/>
+<span class="not-covered" title="0 out of 5 forms covered">
+                253&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(solve&nbsp;game&nbsp;patterns&nbsp;words))
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                254&nbsp;&nbsp;&nbsp;&nbsp;([game&nbsp;patterns&nbsp;candidates]
+                </span><br/>
+<span class="not-covered" title="0 out of 2 forms covered">
+                255&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(loop&nbsp;[i&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0
+                </span><br/>
+<span class="not-covered" title="0 out of 3 forms covered">
+                256&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;to-test&nbsp;&nbsp;(first&nbsp;candidates)
+                </span><br/>
+<span class="not-covered" title="0 out of 1 forms covered">
+                257&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;patterns&nbsp;patterns
+                </span><br/>
+<span class="not-covered" title="0 out of 1 forms covered">
+                258&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cands&nbsp;&nbsp;&nbsp;&nbsp;candidates]
+                </span><br/>
+<span class="not-covered" title="0 out of 5 forms covered">
+                259&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(let&nbsp;[εὕρηκα&nbsp;(with-mark&nbsp;patterns&nbsp;:found)]
+                </span><br/>
+<span class="not-covered" title="0 out of 7 forms covered">
+                260&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(cond&nbsp;(&gt;&nbsp;i&nbsp;6)&nbsp;nil
+                </span><br/>
+<span class="not-covered" title="0 out of 12 forms covered">
+                261&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(every?&nbsp;char?&nbsp;εὕρηκα)&nbsp;{:word&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(apply&nbsp;str&nbsp;εὕρηκα)
+                </span><br/>
+<span class="not-covered" title="0 out of 2 forms covered">
+                262&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:attempts&nbsp;(count&nbsp;patterns)
+                </span><br/>
+<span class="not-covered" title="0 out of 3 forms covered">
+                263&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:patterns&nbsp;(reverse&nbsp;patterns)}
+                </span><br/>
+<span class="not-covered" title="0 out of 5 forms covered">
+                264&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:else&nbsp;(case&nbsp;(count&nbsp;cands)
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                265&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0&nbsp;nil&nbsp;;;&nbsp;fail
+                </span><br/>
+<span class="not-covered" title="0 out of 7 forms covered">
+                266&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1&nbsp;{:word&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(first&nbsp;cands)
+                </span><br/>
+<span class="not-covered" title="0 out of 2 forms covered">
+                267&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:attempts&nbsp;(count&nbsp;patterns)
+                </span><br/>
+<span class="not-covered" title="0 out of 3 forms covered">
+                268&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:patterns&nbsp;(reverse&nbsp;patterns)}
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                269&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;;;&nbsp;else
+                </span><br/>
+<span class="not-covered" title="0 out of 7 forms covered">
+                270&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(let&nbsp;[pattern&nbsp;&nbsp;&nbsp;(apply&nbsp;game&nbsp;(list&nbsp;to-test))
+                </span><br/>
+<span class="not-covered" title="0 out of 4 forms covered">
+                271&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;patterns&#x27;&nbsp;(cons&nbsp;pattern&nbsp;patterns)
+                </span><br/>
+<span class="not-covered" title="0 out of 5 forms covered">
+                272&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cands&#x27;&nbsp;&nbsp;&nbsp;&nbsp;(refine-candidates&nbsp;cands&nbsp;to-test&nbsp;pattern)]
+                </span><br/>
+<span class="not-covered" title="0 out of 1 forms covered">
+                273&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(recur&nbsp;(inc&nbsp;i)
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                274&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(first&nbsp;cands&#x27;)
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                275&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;patterns&#x27;
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                276&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(rest&nbsp;cands&#x27;)))))))))
+                </span><br/>
+<span class="blank" title="0 out of 0 forms covered">
+                277&nbsp;&nbsp;
+                </span><br/>
+<span class="covered" title="1 out of 1 forms covered">
+                278&nbsp;&nbsp;(defn&nbsp;display-pattern
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                279&nbsp;&nbsp;&nbsp;&nbsp;&quot;Display&nbsp;one&nbsp;`pattern`&nbsp;from&nbsp;a&nbsp;solution-map&nbsp;as&nbsp;a&nbsp;table&nbsp;row&nbsp;of&nbsp;tiles.&quot;
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                280&nbsp;&nbsp;&nbsp;&nbsp;[pattern]
+                </span><br/>
+<span class="not-covered" title="0 out of 2 forms covered">
+                281&nbsp;&nbsp;&nbsp;&nbsp;[:tr
+                </span><br/>
+<span class="not-covered" title="0 out of 3 forms covered">
+                282&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(map
+                </span><br/>
+<span class="not-covered" title="0 out of 18 forms covered">
+                283&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;#(vector&nbsp;:td&nbsp;{:class&nbsp;(str&nbsp;&quot;tile&nbsp;&quot;&nbsp;(name&nbsp;(first&nbsp;%)))}&nbsp;(str&nbsp;(nth&nbsp;%&nbsp;1)))
+                </span><br/>
+<span class="not-covered" title="0 out of 1 forms covered">
+                284&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pattern)])
+                </span><br/>
+<span class="blank" title="0 out of 0 forms covered">
+                285&nbsp;&nbsp;
+                </span><br/>
+<span class="covered" title="1 out of 1 forms covered">
+                286&nbsp;&nbsp;(defn&nbsp;^:export&nbsp;display
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                287&nbsp;&nbsp;&nbsp;&nbsp;&quot;Display&nbsp;this&nbsp;`solution-map`,&nbsp;as&nbsp;returned&nbsp;by&nbsp;`solve`.&quot;
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                288&nbsp;&nbsp;&nbsp;&nbsp;[solution-map]
+                </span><br/>
+<span class="not-covered" title="0 out of 76 forms covered">
+                289&nbsp;&nbsp;&nbsp;&nbsp;(html
+                </span><br/>
+<span class="not-covered" title="0 out of 2 forms covered">
+                290&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(if&nbsp;(empty?&nbsp;solution-map)
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                291&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[:h1&nbsp;{:class&nbsp;&quot;fail&quot;}&nbsp;&quot;Failed&nbsp;:-(&quot;]
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                292&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;;;&nbsp;else
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                293&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[:div&nbsp;{:class&nbsp;&quot;wordleist&quot;}
+                </span><br/>
+<span class="not-covered" title="0 out of 3 forms covered">
+                294&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[:h1&nbsp;(:word&nbsp;solution-map)]
+                </span><br/>
+<span class="not-covered" title="0 out of 1 forms covered">
+                295&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[:h4&nbsp;&quot;Attempts:&nbsp;&quot;&nbsp;(:attempts&nbsp;solution-map)]
+                </span><br/>
+<span class="not-tracked" title="0 out of 0 forms covered">
+                296&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[:table
+                </span><br/>
+<span class="not-covered" title="0 out of 6 forms covered">
+                297&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(map&nbsp;display-pattern&nbsp;(:patterns&nbsp;solution-map))]])))
+                </span><br/>
+ </body>
+</html>
