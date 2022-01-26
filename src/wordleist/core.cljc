@@ -32,7 +32,7 @@
   "Check that this `target` is exactly `word-length` long, and throuw an exception labelled
    with `name` if it is not."
   [target name]
-  (when-not (= (count target) word-length)
+  (when-not (and (string? target) (= (count target) word-length))
     (throw (#?(:clj Exception.
                :cljs js/Error.) (str name " must have exactly " word-length " letters; '"
                                      target "' has " (count target)))))
@@ -59,9 +59,12 @@
 
 (defn ^:export wordle-gen
   "Generate a new wordle function, whose target is a five letter word chosen 
-   at random from the `words` list"
-  []
-  (partial wordle (rand-nth words)))
+   at random from the unaugmented `words` list."
+  ([]
+   (partial wordle (rand-nth (rest words))))
+  ([target]
+   (check-length target "target")
+   (partial wordle target)))
 
 (defn- in-consistent
   "Internal guts of `consistent?`, q.v."
@@ -69,9 +72,8 @@
   (map #(let [present (some (fn [x] (= (nth %1 1) x)) target)]
           (case (first %1)
             :found (= (nth %1 1) %2)
-            :present present
-            :not-present (not present)
-            :not-found true))
+            :present (not (= (nth %1 1) %2))
+            :not-present (not present)))
        pattern
        target))
 
@@ -94,15 +96,6 @@
 ;; ("water")
 ;; so it's probably worth filtering the candidate list after each attempt
 
-(defn ignore-not-present
-  "Replace all occurances of :not-present in this `pattern` with :not-found."
-  [pattern]
-  (map
-   #(if
-     (= :not-present (first %)) [:not-found (nth % 1)]
-     %)
-   pattern))
-
 (defn refine-candidates
   "Refine these `candidates` by removing those which are not consistent with this `pattern`,
    generated from this `word`."
@@ -113,9 +106,7 @@
   ([candidates word pattern]
    (filter
     #(when (consistent?
-            (if (member? word candidates)
-              pattern
-              (ignore-not-present pattern))
+            pattern
             %) %)
     candidates)))
 
@@ -194,24 +185,6 @@
   (let [np (all-with-mark patterns mark)]
     (remove-all np freq)))
 
-(defn- alternate-possible
-  "Where `possibles` is a list of characters which have been marked `possible` in these
-   `patterns`, return the first which has never been marked as `possible` in this
-   `position`.
-
-   As with `generate`, which depends on it, this is experimental code which is currently
-   not used."
-  [patterns possibles others position]
-  (let [already-tried (remove nil?
-                              (map #(let [e (nth % position)]
-                                      (when (= :not-present (first e))
-                                        (nth e 1)))
-                                   patterns))
-        possibles'    (remove-all already-tried possibles)]
-    (if (empty? possibles')
-      (first others)
-      (first possibles'))))
-
 (defn generate
   "Generate the next word to test, given these `patterns` from previous tests, 
    and these `candidates` for the word to be found. Note that the best word to 
@@ -221,24 +194,8 @@
    but it added a lot of complexity and doesn't work well so it is currently not
    used."
   [patterns candidates]
-  (let [stripped-patterns (map :pattern patterns)
-        f  (with-mark stripped-patterns :found)
-        fs (remove empty? f)
-        p  (seq (set (remove-all fs (all-with-mark stripped-patterns :present))))
-        o  (remove-all-with-mark stripped-patterns :not-present)]
-    (let [eureka (= (count fs) word-length)]
-      {:eureka eureka
-       :cand   (apply
-                str
-                (if eureka
-                  fs
-                  (map
-                   #(cond
-                      (nil? (nth f %)) (nth o %) ;; if it's a found position, try the next char we don't know about
-                      (> (count p) 1) (alternate-possible patterns p o %)
-                      :else (nth o %)) ;; not ideal; probably use `loop` instead of `map` 
-                          ;; so we can try others in strict order
-                   (range word-length))))})))
+  (first candidates))
+
 
 (defn ^:export solve
   "Solve a wordle; with no arguments, start with a new random word; otherwise,
@@ -253,26 +210,31 @@
   ([game patterns]
    (solve game patterns words))
   ([game patterns candidates]
-   (loop [i        0
-          to-test  (first candidates)
+   (loop [to-test  (first candidates)
           patterns patterns
           cands    candidates]
      (let [εὕρηκα (with-mark (map :pattern patterns) :found)]
-       (cond (> i 6) nil
-             (every? char? εὕρηκα) {:word     (apply str εὕρηκα)
+       (cond (> (count patterns) 6) {:success  false
+                                     :word     "Failed: no more turns :-("
+                                     :attempts (count patterns)
+                                     :patterns (reverse patterns)}
+             (every? char? εὕρηκα) {:success  true
+                                    :word     (apply str εὕρηκα)
                                     :attempts (count patterns)
                                     :patterns (reverse patterns)}
-             (zero? (count cands)) nil ;; fail
+             (zero? (count cands)) {:success  false
+                                    :word     "Failed: no more candidates :-("
+                                    :attempts (count patterns)
+                                    :patterns (reverse patterns)}
              :else        (let [pattern   (apply game (list to-test))
                                 cands'    (refine-candidates cands to-test pattern)
                                 patterns' (cons
-                                           {:pattern pattern :cands (count cands')}
+                                           {:pattern pattern
+                                            :cands   (count cands')}
                                            patterns)]
-                            (println (first patterns'))
-                            (recur (inc i)
-                                   (first cands')
+                            (recur (generate patterns' cands')
                                    patterns'
-                                   (rest cands'))))))))
+                                   cands')))))))
 
 (defn display-pattern
   "Display one `pattern` from a solution-map as a table row of tiles."
@@ -283,9 +245,9 @@
     (:pattern pattern))
    (let [w (count words)
          c (:cands pattern)]
-   [:td {:class "remaining"} 
-    (- w c) " words eliminated; "
-    c " words remaining"])])
+     [:td {:class "remaining"}
+      (- w c) " words eliminated; "
+      c " words remaining"])])
 
 (defn ^:export display
   "Display this `solution-map`, as returned by `solve`."
@@ -299,3 +261,8 @@
       [:h4 "Attempts: " (:attempts solution-map)]
       [:table
        (map display-pattern (:patterns solution-map))]])))
+
+;; (def x (map
+;;         #(assoc (solve (wordle-gen %)) :target %)
+;;         words))
+
