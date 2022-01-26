@@ -6,7 +6,7 @@
                :cljs [crate.core :refer [html]])
             [clojure.string :refer [join split-lines]]))
 
-(def word-length
+(def ^:dynamic word-length
   "The length of the words we operate on."
   5)
 
@@ -43,7 +43,7 @@
   [target collection]
   (some #(= target %) collection))
 
-(defn wordle
+(defn ^:export wordle
   "given this `target` as the word sought, return the wordle pattern for this
   `guess`."
   [target guess]
@@ -221,10 +221,11 @@
    but it added a lot of complexity and doesn't work well so it is currently not
    used."
   [patterns candidates]
-  (let [f  (with-mark patterns :found)
+  (let [stripped-patterns (map :pattern patterns)
+        f  (with-mark stripped-patterns :found)
         fs (remove empty? f)
-        p  (seq (set (remove-all fs (all-with-mark patterns :present))))
-        o  (remove-all-with-mark patterns :not-present)]
+        p  (seq (set (remove-all fs (all-with-mark stripped-patterns :present))))
+        o  (remove-all-with-mark stripped-patterns :not-present)]
     (let [eureka (= (count fs) word-length)]
       {:eureka eureka
        :cand   (apply
@@ -256,24 +257,22 @@
           to-test  (first candidates)
           patterns patterns
           cands    candidates]
-     (let [εὕρηκα (with-mark patterns :found)]
+     (let [εὕρηκα (with-mark (map :pattern patterns) :found)]
        (cond (> i 6) nil
              (every? char? εὕρηκα) {:word     (apply str εὕρηκα)
                                     :attempts (count patterns)
                                     :patterns (reverse patterns)}
-             :else (case (count cands)
-                     0 nil ;; fail
-                     1 {:word     (first cands)
-                        :attempts (count patterns)
-                        :patterns (reverse patterns)}
-       ;; else
-                     (let [pattern   (apply game (list to-test))
-                           patterns' (cons pattern patterns)
-                           cands'    (refine-candidates cands to-test pattern)]
-                       (recur (inc i)
-                              (first cands')
-                              patterns'
-                              (rest cands')))))))))
+             (zero? (count cands)) nil ;; fail
+             :else        (let [pattern   (apply game (list to-test))
+                                cands'    (refine-candidates cands to-test pattern)
+                                patterns' (cons
+                                           {:pattern pattern :cands (count cands')}
+                                           patterns)]
+                            (println (first patterns'))
+                            (recur (inc i)
+                                   (first cands')
+                                   patterns'
+                                   (rest cands'))))))))
 
 (defn display-pattern
   "Display one `pattern` from a solution-map as a table row of tiles."
@@ -281,7 +280,12 @@
   [:tr
    (map
     #(vector :td {:class (str "tile " (name (first %)))} (str (nth % 1)))
-    pattern)])
+    (:pattern pattern))
+   (let [w (count words)
+         c (:cands pattern)]
+   [:td {:class "remaining"} 
+    (- w c) " words eliminated; "
+    c " words remaining"])])
 
 (defn ^:export display
   "Display this `solution-map`, as returned by `solve`."
