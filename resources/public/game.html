@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="css/style.css" rel="stylesheet" type="text/css">
+    <title>Wordleist</title>
+</head>
+
+<body>
+    <div id="content">
+        <div id="target"></div>
+
+        <form><input id="guess" name="guess" type="text" maxlength="5" onsubmit="evaluateGuess()" /></form>
+    </div>
+
+    <footer>
+        <div id="credits">
+            <div>
+                <img height="16" width="16" alt="Clojure" src="img/credits/clojure-icon.gif" /> Powered by
+                <a href="http://clojure.org">Clojure</a> ||
+                <img height="16" width="16" alt="GitHub" src="img/credits/github-logo-transparent.png" />Find me/fork me
+                on
+                <a href="https://github.com/journeyman-cc/wordleist">Github</a> ||
+                <img height="16" width="16" alt="Free Software Foundation" src="img/credits/gnu.small.png" />Licensed
+                under
+                the
+                <a href="http://www.gnu.org/licenses/gpl-2.0.html">GNU General Public License version 2.0</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/compiled/wordleist.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        var Target = document.getElementById('target');
+        var Parent = Target.parentNode;
+        var Patterns = new Array();
+
+        function evaluateGuess(form) {
+            Patterns.push(wordleist.core.play( wordleist.core.word_for_day(), form.guess))
+        
+        Parent.replaceChild(wordleist.core.display(wordleist.core.solve(wordleist.core.wordle_gen())),
+            Parent.firstChild());
+        }
+    </script>
+</body>
+
+</html>

@@ -62,6 +62,10 @@ wordleist.core=> (pprint (solve (wordle-gen)))
   ([:found \y] [:found \o] [:found \u] [:found \n] [:found \g]))}
 ```
 
+## Other implementations
+
+[Joseph Fahey](http://josf.info/) has an implementation [here](https://github.com/josf/guess-lisp), which has a much more sophisticated guess generation phase tham mine (yet) has.
+
 ## License
 
 Copyright © 2022 Simon Brooke (simon@jouneyman.cc)

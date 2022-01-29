@@ -41,14 +41,11 @@
           :source-uri  "https://github.com/journeyman-cc/wordleist/blob/master/{filepath}#L{line}"
           :language    :clojurescript}
 
-  :dependencies [;;[cljs-http "0.1.46"]
+  :dependencies [[clojure.java-time "0.3.3"]
                  [crate "0.2.5"]
-                 [org.clojure/clojure "1.10.3"]
-                 [org.clojure/clojurescript "1.10.520"]
                  [hiccup "1.0.5"]
-                 ;; [hiccups "0.3.0"]
-                 ;;[org.clojure/core.async  "0.4.500"]
-                 ]
+                 [org.clojure/clojure "1.10.3"]
+                 [org.clojure/clojurescript "1.10.520"]]
 
   :description "A Clojure library designed to generate and solve wordle-style puzzles."
 

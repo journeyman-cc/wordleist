@@ -4,6 +4,7 @@
                :cljs [shadow.resource :refer [inline]])
             #?(:clj [hiccup.core :refer [html]]
                :cljs [crate.core :refer [html]])
+            #?(:clj [java-time :as jt :refer [format system-clock with-clock zoned-date-time]])
             [clojure.string :refer [join split-lines]]))
 
 (def ^:dynamic word-length
@@ -20,6 +21,20 @@
   (let [f (dissoc (frequencies #?(:clj (slurp (resource "sgb-words.txt"))
                                   :cljs sgb-words)) \newline)]
     (sort #(> (f %1) (f %2)) (keys f))))
+
+(defn charm
+  "A score for a `word` which assigns higher values to words with more common letters."
+  ;; I added this function with the idea that sorting the wordlist to put the words with
+  ;; the most frequent characters at the front would improve performance. However, sorting
+  ;; the list in this way makes performance a bit worse, and sorting it in the reverse 
+  ;; order makes things significantly worse, so this is not now used. 
+  [word]
+  (reduce * 1 
+          (map 
+           (dissoc 
+            (frequencies #?(:clj (slurp (resource "sgb-words.txt"))
+                            :cljs sgb-words)) \newline) 
+           word)))
 
 (def words
   "The candidate words."
@@ -56,6 +71,14 @@
         (some (fn [x] (= seeking x)) target) [:present seeking]
         :else [:not-present seeking]))
    (range (count target))))
+
+(defn ^:export play
+  "Convenience wrapper round `wordle`, q.v., returning a solution-map like that 
+   returned by `solve`, q.v."
+  [target guess]
+  (let [pattern (wordle target guess)]
+    {:pattern pattern
+     :success (every? #(= (first %) :found) pattern)}))
 
 (defn ^:export wordle-gen
   "Generate a new wordle function, whose target is a five letter word chosen 
@@ -245,9 +268,10 @@
     (:pattern pattern))
    (let [w (count words)
          c (:cands pattern)]
-     [:td {:class "remaining"}
-      (- w c) " words eliminated; "
-      c " words remaining"])])
+     (when c
+       [:td {:class "remaining"}
+        (- w c) " words eliminated; "
+        c " words remaining"]))])
 
 (defn ^:export display
   "Display this `solution-map`, as returned by `solve`."
@@ -266,3 +290,22 @@
 ;;         #(assoc (solve (wordle-gen %)) :target %)
 ;;         words))
 
+(defn day-number
+  "To issue one puzzle per day, the same for everyone, we need an easily 
+   calculated unambiguous day number; we'll use the UTC date in yyyddmm
+   format, considered as an integer."
+  []
+  ;; this looks very clumsy but requires no libraries, keeping JavaScript
+  ;; image small. Not absolutely convinced it will give us UTC...
+  #?(:cljs (js/parseInt
+            (.replace
+             (.replace (first (.split (.toISOString (js/Date.)) "T"))
+                       #"-" "")
+             #"-" ""))
+     :clj (read-string
+           (jt/format "yyyyMMdd" (with-clock (system-clock "UTC")
+                                   (zoned-date-time))))))
+
+(defn ^:export word-for-day
+  []
+  (nth words (mod (day-number) (count words))))
