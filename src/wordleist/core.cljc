@@ -75,9 +75,9 @@
 (defn ^:export play
   "Convenience wrapper round `wordle`, q.v., returning a solution-map like that 
    returned by `solve`, q.v."
-  [target guess]
+  [target guess patterns]
   (let [pattern (wordle target guess)]
-    {:pattern pattern
+    {:patterns (concat patterns (list pattern))
      :success (every? #(= (first %) :found) pattern)}))
 
 (defn ^:export wordle-gen

@@ -12,7 +12,7 @@
     <div id="content">
         <div id="target"></div>
 
-        <form><input id="guess" name="guess" type="text" maxlength="5" onsubmit="evaluateGuess()" /></form>
+        <form onsubmit="evaluateGuess(this); return false;"><input id="guess" name="guess" type="text" maxlength="5" onsubmit="evaluateGuess()" /></form>
     </div>
 
     <footer>
@@ -38,10 +38,15 @@
         var Patterns = new Array();
 
         function evaluateGuess(form) {
-            Patterns.push(wordleist.core.play( wordleist.core.word_for_day(), form.guess))
+            console.log("evaluating guess " + form.guess);
+            var Result = wordleist.core.play( wordleist.core.word_for_day(), form.guess, Patterns);
+            wordleist.core.display( Result);
+            Patterns = result.patterns;
         
-        Parent.replaceChild(wordleist.core.display(wordleist.core.solve(wordleist.core.wordle_gen())),
-            Parent.firstChild());
+            Parent.replaceChild(wordleist.core.display(Result),
+                Parent.firstChild());
+
+            return false; // to prevent page refresh
         }
     </script>
 </body>
